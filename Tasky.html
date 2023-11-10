@@ -72,7 +72,6 @@
         </form>
 
         <button id="save-button" class="btn btn-success mt-2">Salvar Alterações</button>
-        <button id="json-button" class="btn btn-info mt-2">Gerar JSON</button>
 
         <div id="search-container">
             <input type="text" id="search-input" class="form-control" placeholder="Digite a palavra-chave">
@@ -202,7 +201,6 @@
                     if (contractData.observacao) {
                         contractRow.querySelector('.observation').style.backgroundColor = 'black';
                         contractRow.querySelector('.observation').style.color = 'white';
-                        contractRow.querySelector('.observation').style.animation = 'blink 1s infinite';
                     }
 
                     if (contractData.idContratacao.startsWith('DP')) {
@@ -235,6 +233,8 @@
                 });
 
                 contractDataField.value = '';
+                updatePieChart();
+                blinkText();
             });
 
             contractTable.addEventListener('click', event => {
@@ -318,50 +318,6 @@
                 }
             });
 
-            const jsonButton = document.getElementById('json-button');
-            jsonButton.addEventListener('click', () => {
-                const contractsData = [];
-
-                const contractRows = [...document.querySelectorAll('#contract-table tbody tr')];
-                contractRows.forEach(row => {
-                    const columns = row.getElementsByTagName('td');
-                    const contractData = {
-                        numContrato: columns[0].textContent,
-                        numProcesso: columns[1].textContent,
-                        empresaContratada: columns[2].textContent,
-                        objeto: columns[3].textContent,
-                        numEmpenho: columns[4].textContent,
-                        assinatura: columns[5].textContent,
-                        diasUteis: columns[6].textContent,
-                        termino: columns[7].textContent,
-                        inicioVigencia: columns[8].textContent,
-                        fimVigencia: columns[9].textContent,
-                        fiscais: columns[10].textContent,
-                        valor: columns[11].textContent,
-                        situacao: columns[12].textContent,
-                        idContratacao: columns[13].textContent,
-                        observacao: columns[14].textContent,
-                        shortcut: columns[15].querySelector('.shortcut-input').value
-                    };
-                    contractsData.push(contractData);
-                });
-
-                const jsonContent = JSON.stringify(contractsData, null, 2);
-                const blob = new Blob([jsonContent], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = 'contracts.json';
-                document.body.appendChild(a);
-
-                a.click();
-
-                window.URL.revokeObjectURL(url);
-            });
-
-            // Função para atualizar o gráfico de pizza
             function updatePieChart() {
                 const contractCount = document.querySelectorAll('#contract-table tbody tr').length;
                 const orangeCount = [...document.querySelectorAll('#contract-table tbody tr')]
@@ -387,7 +343,6 @@
                 pieChart.update();
             }
 
-            // Função para fazer o texto piscar
             function blinkText() {
                 const observationCells = document.querySelectorAll('.observation');
                 observationCells.forEach(cell => {
@@ -395,7 +350,6 @@
                 });
             }
 
-            // Função para salvar dados no armazenamento local
             function saveToLocalStorage() {
                 const contractRows = [...document.querySelectorAll('#contract-table tbody tr')];
                 const contractsData = contractRows.map(row => {
@@ -424,7 +378,6 @@
                 localStorage.setItem('contractsData', JSON.stringify(contractsData));
             }
 
-            // Função para carregar dados do armazenamento local
             function loadFromLocalStorage() {
                 const savedContractsData = localStorage.getItem('contractsData');
                 if (savedContractsData) {
@@ -459,7 +412,6 @@
                         if (data.observacao) {
                             contractRow.querySelector('.observation').style.backgroundColor = 'black';
                             contractRow.querySelector('.observation').style.color = 'white';
-                            contractRow.querySelector('.observation').style.animation = 'blink 1s infinite';
                         }
 
                         if (data.idContratacao.startsWith('DP')) {
@@ -483,19 +435,12 @@
                         }
 
                         contractTable.appendChild(contractRow);
-
-                        const index = pieChart.data.labels.indexOf(data.idContratacao.substring(0, 2));
-                        if (index !== -1) {
-                            pieChart.data.datasets[0].data[index]++;
-                            pieChart.update();
-                        }
-
-                        contractRow.querySelector('.shortcut-input').value = data.shortcut;
                     });
+                    updatePieChart();
+                    blinkText();
                 }
             }
 
-            // Carregar dados do armazenamento local ao carregar a página
             loadFromLocalStorage();
         });
     </script>
